@@ -1,7 +1,7 @@
 {-
-  Day 2 task of https://adventofcode.com/
+  Day 1, 2nd task of https://adventofcode.com/
 -}
-module a2 where
+module a1b where
 
 open import Agda.Builtin.IO using (IO)
 open import Agda.Builtin.Unit using (⊤)

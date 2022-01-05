@@ -1,5 +1,5 @@
 {-
-  Day 1 task of https://adventofcode.com/
+  Day 1, 1st task of https://adventofcode.com/
 -}
 module a1 where
 
