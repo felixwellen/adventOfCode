@@ -35,7 +35,7 @@ record Position : Set where
 
 {- Alignment of the submarine, i.e. position and aim -}
 record Alignment : Set where
-  constructor pos
+  constructor state
   field
     h : ℕ
     d : ℕ
@@ -43,28 +43,28 @@ record Alignment : Set where
 
 open Position
 
-apply : Command → Position → Maybe Position
+apply : Command → Alignment → Maybe Alignment
 
-apply (forward x) (pos h d) = just (pos (h + x) d)
+apply (forward x) (state h d aim) = just (state (h + x) (d + (x * aim)) aim)
 
-apply (up x)      (pos h d) = if d <ᵇ x
-                              then nothing
-                              else just (pos h ∣ d - x ∣)
+apply (up x)      (state h d aim) = if aim <ᵇ x
+                                    then nothing
+                                    else just (state h d ∣ aim - x ∣)
 
-apply (down x)    (pos h d) = just (pos h (d + x))
+apply (down x) (state h d aim) = just (state h d (aim + x))
 
 
-iterate : List Command → Position → Maybe Position
-iterate [] p = just p
-iterate (command ∷ list) p with apply command p
-...                           | just q  = iterate list q
+iterate : List Command → Alignment → Maybe Alignment
+iterate [] a = just a
+iterate (command ∷ list) a with apply command a
+...                           | just a'  = iterate list a'
 ...                           | nothing = nothing
 
 doTask : List Command → Maybe ℕ
-doTask list = let maybeResult = iterate list (pos 0 0)
+doTask list = let maybeResult = iterate list (state 0 0 0)
               in maybeMap multiplyComponents maybeResult
-  where multiplyComponents : Position → ℕ
-        multiplyComponents (pos h d) = h * d
+  where multiplyComponents : Alignment → ℕ
+        multiplyComponents (state h d aim) = h * d
 
 input : List Command
 input =
@@ -1076,24 +1076,24 @@ main = putStrLn (shopMaybeNat (doTask input))
 
 private
   -- checks from the exercise text
-  _ : apply (forward 5) (pos 0 0) ≡ just (pos 5 0)
+  _ : apply (forward 5) (state 0 0 0) ≡ just (state 5 0 0)
   _ = refl
 
-  _ : apply (down 5) (pos 5 0) ≡ just (pos 5 5)
+  _ : apply (down 5) (state 5 0 0) ≡ just (state 5 0 5)
   _ = refl
 
-  _ : apply (forward 8) (pos 5 5) ≡ just (pos 13 5)
+  _ : apply (forward 8) (state 5 0 5) ≡ just (state 13 (8 * 5) 5)
   _ = refl
 
-  _ : apply (up 3) (pos 13 5) ≡ just (pos 13 2)
+  _ : apply (up 3) (state 13 40 5) ≡ just (state 13 40 2)
   _ = refl
 
-  _ : apply (down 8) (pos 13 2) ≡ just (pos 13 10)
+  _ : apply (down 8) (state 13 40 2) ≡ just (state 13 40 10)
   _ = refl
 
-  _ : apply (forward 2) (pos 13 10) ≡ just (pos 15 10)
+  _ : apply (forward 2) (state 13 40 10) ≡ just (state 15 60 10)
   _ = refl
 
   -- submarine does not 'fly'
-  _ : apply (up 7) (pos 13 2) ≡ nothing
+  _ : apply (up 7) (state 13 2 2) ≡ nothing
   _ = refl
