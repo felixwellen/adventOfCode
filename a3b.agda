@@ -42,15 +42,19 @@ Vecℕ→BitVec (x ∷ v) with Vecℕ→BitVec v
 ...                                  | suc (suc _) = nothing
 Vecℕ→BitVec (x ∷ v)     | nothing = nothing
 
-findMostCommonBit : {n : ℕ} (index : Fin n) → List (BitVec n) → Bit
-findMostCommonBit {n = n} index input = iterate 0 0 input
-  where
-        iterate : (zeros : ℕ) (ones : ℕ) → List (BitVec n) → Bit
-        iterate zeros ones [] =
-          if ones <ᵇ zeros then zero else one
-        iterate zeros ones (bitVec ∷ list) with lookup bitVec index
-        ...                                   | zero = iterate (1 + zeros) ones list
-        ...                                   | one = iterate zeros (1 + ones) list
+module _ {n : ℕ} (index : Fin n) (input : List (BitVec n)) where
+  private
+    iterate : (pick : (zeros : ℕ) → (ones : ℕ) → Bit) (zeros : ℕ) (ones : ℕ) → List (BitVec n) → Bit
+    iterate pick zeros ones [] = pick zeros ones
+    iterate pick zeros ones (bitVec ∷ list) with lookup bitVec index
+    ...                                   | zero = iterate pick (1 + zeros) ones list
+    ...                                   | one = iterate pick zeros (1 + ones) list
+
+  mostCommonBit :  Bit
+  mostCommonBit = iterate (λ zeros ones → if ones <ᵇ zeros then zero else one) 0 0 input
+
+  leastCommonBit : Bit
+  leastCommonBit = iterate (λ zeros ones → if zeros <ᵇ ones then one else zero) 0 0 input
 
 bitVecToℕ : {n : ℕ} → BitVec n → ℕ
 bitVecToℕ [] = 0
@@ -72,7 +76,7 @@ listMaybe (nothing ∷ list) = nothing
 doTask : List (BitVec 12) → ℕ
 doTask input = gamma * epsilon
                where
-                 bitVecGamma = map (λ index → findMostCommonBit index input) (allFin 12)
+                 bitVecGamma = map (λ index → mostCommonBit index input) (allFin 12)
                  gamma : ℕ
                  gamma = bitVecToℕ bitVecGamma
                  epsilon = bitVecToℕ (invertBitVec bitVecGamma)
@@ -104,23 +108,26 @@ private
     (0 ∷  1 ∷  0 ∷  1 ∷  0 ∷  []) ∷
     []))
 
-  _ : maybeMap (findMostCommonBit Fin.zero) testInput ≡ just one
+  _ : maybeMap (mostCommonBit Fin.zero) testInput ≡ just one
   _ = refl
 
-  _ : maybeMap (findMostCommonBit (Fin.suc Fin.zero)) testInput ≡ just zero
+  _ : maybeMap (mostCommonBit (Fin.suc Fin.zero)) testInput ≡ just zero
   _ = refl
 
-  _ : maybeMap (findMostCommonBit (Fin.suc (Fin.suc Fin.zero))) testInput ≡ just one
+  _ : maybeMap (mostCommonBit (Fin.suc (Fin.suc Fin.zero))) testInput ≡ just one
   _ = refl
 
-  _ : maybeMap (findMostCommonBit (Fin.suc (Fin.suc (Fin.suc Fin.zero)))) testInput ≡ just one
+  _ : maybeMap (mostCommonBit (Fin.suc (Fin.suc (Fin.suc Fin.zero)))) testInput ≡ just one
   _ = refl
 
-  _ : maybeMap (findMostCommonBit (fromℕ 4)) testInput ≡ just zero
+  _ : maybeMap (mostCommonBit (fromℕ 4)) testInput ≡ just zero
   _ = refl
 
   -- test for part two
-  _ : findMostCommonBit Fin.zero ((one ∷ zero ∷ []) ∷ (zero ∷ zero ∷ []) ∷ [])  ≡ one
+  _ : mostCommonBit Fin.zero ((one ∷ zero ∷ []) ∷ (zero ∷ zero ∷ []) ∷ [])  ≡ one
+  _ = refl
+
+  _ : leastCommonBit Fin.zero ((one ∷ zero ∷ []) ∷ (zero ∷ zero ∷ []) ∷ [])  ≡ zero
   _ = refl
 
   -- test bitVecToℕ
