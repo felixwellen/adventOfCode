@@ -61,11 +61,6 @@ bitVecToℕ [] = 0
 bitVecToℕ (zero ∷ v) = bitVecToℕ v
 bitVecToℕ {n = suc n} (one ∷ v) = 2 ^ n + (bitVecToℕ v)
 
-invertBitVec  : {n : ℕ} → BitVec n → BitVec n
-invertBitVec  [] = []
-invertBitVec  (zero ∷ v) = one ∷ invertBitVec v
-invertBitVec  (one ∷ v) = zero ∷ invertBitVec v
-
 listMaybe : {A : Set} → List (Maybe A) → Maybe (List A)
 listMaybe [] = just []
 listMaybe (just x ∷ list) with listMaybe list
