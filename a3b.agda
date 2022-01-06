@@ -42,6 +42,18 @@ Vecℕ→BitVec (x ∷ v) with Vecℕ→BitVec v
 ...                                  | suc (suc _) = nothing
 Vecℕ→BitVec (x ∷ v)     | nothing = nothing
 
+bitVecToℕ : {n : ℕ} → BitVec n → ℕ
+bitVecToℕ [] = 0
+bitVecToℕ (zero ∷ v) = bitVecToℕ v
+bitVecToℕ {n = suc n} (one ∷ v) = 2 ^ n + (bitVecToℕ v)
+
+listMaybe : {A : Set} → List (Maybe A) → Maybe (List A)
+listMaybe [] = just []
+listMaybe (just x ∷ list) with listMaybe list
+...                          | just proccessedList = just (x ∷ proccessedList)
+...                          | nothing = nothing
+listMaybe (nothing ∷ list) = nothing
+
 module _ {n : ℕ} (index : Fin n) (input : List (BitVec n)) where
   private
     iterate : (pick : (zeros : ℕ) → (ones : ℕ) → Bit) (zeros : ℕ) (ones : ℕ) → List (BitVec n) → Bit
@@ -56,25 +68,8 @@ module _ {n : ℕ} (index : Fin n) (input : List (BitVec n)) where
   leastCommonBit : Bit
   leastCommonBit = iterate (λ zeros ones → if zeros <ᵇ ones then one else zero) 0 0 input
 
-bitVecToℕ : {n : ℕ} → BitVec n → ℕ
-bitVecToℕ [] = 0
-bitVecToℕ (zero ∷ v) = bitVecToℕ v
-bitVecToℕ {n = suc n} (one ∷ v) = 2 ^ n + (bitVecToℕ v)
-
-listMaybe : {A : Set} → List (Maybe A) → Maybe (List A)
-listMaybe [] = just []
-listMaybe (just x ∷ list) with listMaybe list
-...                          | just proccessedList = just (x ∷ proccessedList)
-...                          | nothing = nothing
-listMaybe (nothing ∷ list) = nothing
-
 doTask : List (BitVec 12) → ℕ
-doTask input = gamma * epsilon
-               where
-                 bitVecGamma = map (λ index → mostCommonBit index input) (allFin 12)
-                 gamma : ℕ
-                 gamma = bitVecToℕ bitVecGamma
-                 epsilon = bitVecToℕ (invertBitVec bitVecGamma)
+doTask input = ?
 
 containsMoreThanOne : {A : Set} → List A → Bool
 containsMoreThanOne [] = false
